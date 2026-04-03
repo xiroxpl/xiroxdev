@@ -63,10 +63,6 @@ body {
   .card:hover {
     transform: translateY(-6px);
   }
-  .card:hover img,
-  .card:hover .img-placeholder {
-    filter: grayscale(0%);
-  }
   .card:hover .color-overlay {
     opacity: 0.55;
   }
