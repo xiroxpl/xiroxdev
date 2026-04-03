@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Napierdalaj Wojciecha</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<canvas id="particleCanvas"></canvas>
+
+<div id="topbar">
+  <h1>💢 Napierdalaj Wojciecha</h1>
+  <div style="display:flex;gap:12px;">
+    <div class="stat-pill">👊 <span class="val" id="clickCount">0</span></div>
+    <div class="stat-pill">🪙 <span class="val" id="coinCount">0</span></div>
+    <div class="stat-pill">⏱️ CD: <span class="val" id="cdDisplay">0.5s</span></div>
+  </div>
+</div>
+
+<div id="main">
+
+  <div id="gameArea">
+    <div class="arena">
+
+      <div class="stickman" id="attacker">
+        <div class="head-wrap">
+          <img src="face1.jpg" onerror="this.style.display='none';this.parentElement.style.background='#c44'">
+        </div>
+        <svg class="body-svg" viewBox="0 0 120 190" overflow="visible">
+          <line x1="60" y1="0"  x2="60" y2="95"  stroke="#ddd" stroke-width="5" stroke-linecap="round"/>
+          <line x1="60" y1="25" x2="25" y2="72"  stroke="#ddd" stroke-width="5" stroke-linecap="round"/>
+          <line x1="60" y1="25" x2="95" y2="55"  stroke="#ddd" stroke-width="5" stroke-linecap="round"/>
+          <line x1="60" y1="95" x2="38" y2="175" stroke="#ddd" stroke-width="5" stroke-linecap="round"/>
+          <line x1="60" y1="95" x2="82" y2="175" stroke="#ddd" stroke-width="5" stroke-linecap="round"/>
+          <g class="whip-group" id="whipGroup">
+            <line x1="95" y1="55" x2="118" y2="62" stroke="#ddd" stroke-width="5" stroke-linecap="round"/>
+            <line x1="118" y1="62" x2="200" y2="60" stroke="#c8832a" stroke-width="4" stroke-linecap="round" id="whipHandle"/>
+            <path d="M200,60 Q230,50 252,78" stroke="#c8832a" stroke-width="3" fill="none" stroke-linecap="round" id="whipTip"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="stickman" id="victim">
+        <div class="head-wrap">
+          <img src="face2.png" onerror="this.style.display='none';this.parentElement.style.background='#44c'">
+        </div>
+        <svg class="body-svg" viewBox="0 0 120 190">
+          <line x1="60" y1="0"  x2="60" y2="95"  stroke="#ddd" stroke-width="5" stroke-linecap="round"/>
+          <line x1="60" y1="25" x2="25" y2="75"  stroke="#ddd" stroke-width="5" stroke-linecap="round"/>
+          <line x1="60" y1="25" x2="95" y2="75"  stroke="#ddd" stroke-width="5" stroke-linecap="round"/>
+          <line x1="60" y1="95" x2="38" y2="175" stroke="#ddd" stroke-width="5" stroke-linecap="round"/>
+          <line x1="60" y1="95" x2="82" y2="175" stroke="#ddd" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+    </div>
+
+    <button id="hitBtn">💥 NAPIERDALAJ</button>
+    <div id="cdBarWrap"><div id="cdBar"></div></div>
+    <button id="shopToggleBtn" aria-label="Sklep">🛒</button>
+    <audio id="hitSound" src="hit.mp3"></audio>
+  </div>
+
+  <div id="shopPanel">
+    <h2>🛒 Sklep & Menu</h2>
+
+    <div class="tab-bar">
+      <div class="tab active" data-tab="upgrades">Ulepszenia</div>
+      <div class="tab" data-tab="cosmetics">Kosmetyki</div>
+      <div class="tab" data-tab="stats">Statsy</div>
+      <div class="tab" data-tab="changelog">Log</div>
+    </div>
+
+    <div class="tab-content active" id="tab-upgrades"></div>
+
+    <div class="tab-content" id="tab-cosmetics">
+
+      <div class="cosmetic-section">
+        <div class="cosmetic-section-title">Kolor Bicza</div>
+        <div class="cosmetic-row" id="cosm-whip-row">
+          <span class="label">Wybierz kolor</span>
+          <div class="color-group" id="whipColorGroup">
+            <div class="color-btn active-color" style="background:#c8832a" data-color="#c8832a" title="Domyślny"></div>
+            <div class="color-btn" style="background:#e63946" data-color="#e63946" title="Czerwony" data-unlock="whipRed"></div>
+            <div class="color-btn" style="background:#f5c842" data-color="#f5c842" title="Złoty" data-unlock="whipGold"></div>
+            <div class="color-btn" style="background:#9b5de5" data-color="#9b5de5" title="Fioletowy" data-unlock="whipPurple"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cosmetic-section">
+        <div class="cosmetic-section-title">Efekty Wizualne</div>
+        <div class="cosmetic-row" id="cosm-flash-row">
+          <span class="label">🔆 Flash Ekranu</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="flashToggle" disabled>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="cosmetic-row" id="cosm-particles-row">
+          <span class="label">🌧️ Deszcz Monet</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="particlesToggle" disabled>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="cosmetic-row" id="cosm-shake-row">
+          <span class="label">🌀 Trzęsienie Ziemi</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="shakeToggle" disabled>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="cosmetic-row" id="cosm-glow-row">
+          <span class="label">👑 Złota Głowa</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="glowToggle" disabled>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="cosmetic-row" id="cosm-bigbtn-row">
+          <span class="label">🏋️ Wielki Przycisk</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="bigBtnToggle" disabled>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="tab-content" id="tab-stats">
+      <div class="stats-grid">
+        <div class="stat-row"><span class="label">Kliknięcia</span><span class="value" id="s-clicks">0</span></div>
+        <div class="stat-row"><span class="label">Monety zarobione</span><span class="value" id="s-earned">0</span></div>
+        <div class="stat-row"><span class="label">Monety wydane</span><span class="value" id="s-spent">0</span></div>
+        <div class="stat-row"><span class="label">Monety / klik</span><span class="value" id="s-cpc">1</span></div>
+        <div class="stat-row"><span class="label">Autokliker / sek</span><span class="value" id="s-auto">0</span></div>
+        <div class="stat-row"><span class="label">Cooldown</span><span class="value" id="s-cd">0.5s</span></div>
+        <div class="stat-row"><span class="label">Szansa na krit</span><span class="value" id="s-crit">0%</span></div>
+        <div class="stat-row"><span class="label">Combo (co X klik)</span><span class="value" id="s-combo">—</span></div>
+        <div class="stat-row"><span class="label">Kupione ulepszenia</span><span class="value" id="s-upg">0</span></div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-changelog">
+      <div class="changelog">
+        <div>
+          <div class="cl-ver">v4.5 — Optymalizacja Mobilna</div>
+          <div class="cl-item">Zablokowano zoom przy podwójnym tapnięciu (viewport fix)</div>
+          <div class="cl-item">Przycisk NAPIERDALAJ obsługuje touchstart bez opóźnienia</div>
+          <div class="cl-item">Layout pionowy na telefonach — panel sklepu jako drawer od dołu</div>
+          <div class="cl-item">Przycisk 🛒 otwiera/zamyka sklep na mobile</div>
+          <div class="cl-item">Topbar i postaci skalują się na małych ekranach</div>
+          <div class="cl-item">touch-action: none na przycisku — brak ghost-click i scroll</div>
+        </div>
+        <div>
+          <div class="cl-ver">v4.0 — Balans & Kosmetyki</div>
+          <div class="cl-item">Cooldown 0.5s na kliknięcie (domyślnie)</div>
+          <div class="cl-item">4 ulepszenia cooldownu (-0.1s każde, ostatnie usuwa CD)</div>
+          <div class="cl-item">Ulepszenia w łańcuchach — auto1→auto2→auto3</div>
+          <div class="cl-item">Panel Kosmetyki: włącz/wyłącz flash, cząsteczki, shake, glow</div>
+          <div class="cl-item">Wybór koloru bicza po odblokowaniu</div>
+          <div class="cl-item">Fioletowy bicz jako nowy kolor premium</div>
+        </div>
+        <div>
+          <div class="cl-ver">v3.0 — Wielki Sklep</div>
+          <div class="cl-item">Bicz w ręce atakującego, 18 ulepszeń, autokliker III</div>
+          <div class="cl-item">CSS wydzielony do style.css</div>
+        </div>
+        <div>
+          <div class="cl-ver">v2.0</div>
+          <div class="cl-item">System monet, sklep, statystyki, changelog</div>
+        </div>
+        <div>
+          <div class="cl-ver">v1.0 — Premiera</div>
+          <div class="cl-item">Podstawowy kliker z animacją bicza</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="soundRow">
+      <span>Dźwięk</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="soundToggle" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+</div>
+
+<script>
+let clicks = 0;
+let coins = 0;
+let totalEarned = 0;
+let totalSpent = 0;
+let coinsPerClick = 1;
+let critChance = 0;
+let critMulti = 5;
+let autoPerSec = 0;
+let autoTimer = null;
+let comboBonus = false;
+let comboEvery = 10;
+let doubleCombo = false;
+
+let cooldown = 500;
+let onCooldown = false;
+let cdAnimFrame = null;
+
+let flashUnlocked = false;
+let flashEnabled = false;
+let particlesUnlocked = false;
+let particlesEnabled = false;
+let shakeUnlocked = false;
+let shakeEnabled = false;
+let glowUnlocked = false;
+let glowEnabled = false;
+let bigBtnUnlocked = false;
+let bigBtnEnabled = false;
+
+let whipColors = { default: true };
+
+const WHIP_COLORS = {
+  '#c8832a': 'default',
+  '#e63946': 'whipRed',
+  '#f5c842': 'whipGold',
+  '#9b5de5': 'whipPurple',
+};
+
+const upgradeTracks = {
+  coins: [
+    { id: 'coins1', name: 'Złote Rękawice',    icon: '🥊', cost: 30,   desc: '+1 moneta/klik.',       effect: () => { coinsPerClick += 1; } },
+    { id: 'coins2', name: 'Srebrne Kłykcie',   icon: '🤜', cost: 120,  desc: '+3 monety/klik.',       effect: () => { coinsPerClick += 3; } },
+    { id: 'coins3', name: 'Diamentowa Pięść',  icon: '💎', cost: 450,  desc: '+10 monet/klik.',       effect: () => { coinsPerClick += 10; } },
+    { id: 'coins4', name: 'Platynowe Kłykcie', icon: '🏆', cost: 1200, desc: '+25 monet/klik.',       effect: () => { coinsPerClick += 25; } },
+  ],
+  cd: [
+    { id: 'cd1', name: 'Szybkie Nadgarstki',  icon: '⚡', cost: 80,   desc: 'Cooldown: 0.4s.',  effect: () => { cooldown = 400; updateCdDisplay(); } },
+    { id: 'cd2', name: 'Błyskawiczne Ramię',  icon: '🌩️', cost: 250,  desc: 'Cooldown: 0.3s.',  effect: () => { cooldown = 300; updateCdDisplay(); } },
+    { id: 'cd3', name: 'Piorunujący Cios',    icon: '☄️', cost: 600,  desc: 'Cooldown: 0.2s.',  effect: () => { cooldown = 200; updateCdDisplay(); } },
+    { id: 'cd4', name: 'Brak Limitu',         icon: '∞',  cost: 1500, desc: 'Cooldown: 0s!',    effect: () => { cooldown = 0;   updateCdDisplay(); } },
+  ],
+  crit: [
+    { id: 'crit1', name: 'Krytyczne Trafienie', icon: '💥', cost: 100,  desc: '15% szansa na 5x monety.',           effect: () => { critChance += 0.15; } },
+    { id: 'crit2', name: 'Mega Kryt',           icon: '🌋', cost: 500,  desc: '+10% krit i x10 zamiast x5.',        effect: () => { critChance += 0.10; critMulti = 10; } },
+    { id: 'crit3', name: 'ULTRA KRYT',          icon: '🌠', cost: 2000, desc: '+15% krit i x20 zamiast x10.',       effect: () => { critChance += 0.15; critMulti = 20; } },
+  ],
+  combo: [
+    { id: 'combo1', name: 'Combo Streak', icon: '🔥', cost: 150,  desc: 'Co 10 kliknięć +15 monet.',      effect: () => { comboBonus = true; } },
+    { id: 'combo2', name: 'Ultra Combo',  icon: '🌪️', cost: 600,  desc: 'Combo: +30 monet co 5 kliknięć.', effect: () => { doubleCombo = true; comboEvery = 5; } },
+  ],
+  auto: [
+    { id: 'auto1', name: 'Autokliker I',   icon: '🤖', cost: 200,  desc: '+2 monety/sek.',   effect: () => { autoPerSec += 2;  startAuto(); } },
+    { id: 'auto2', name: 'Autokliker II',  icon: '🦾', cost: 800,  desc: '+8 monet/sek.',   effect: () => { autoPerSec += 8;  startAuto(); } },
+    { id: 'auto3', name: 'Autokliker III', icon: '🏭', cost: 2500, desc: '+25 monet/sek.',  effect: () => { autoPerSec += 25; startAuto(); } },
+  ],
+  cosmetic: [
+    { id: 'flash',     name: 'Flash Ekranu',   icon: '🔆', cost: 80,  desc: 'Ekran błyska przy uderzeniu.',    effect: () => { flashUnlocked = true;     enableCosmetic('flash'); } },
+    { id: 'particles', name: 'Deszcz Monet',   icon: '🌧️', cost: 50,  desc: 'Cząsteczki przy trafieniu.',     effect: () => { particlesUnlocked = true; enableCosmetic('particles'); } },
+    { id: 'shake',     name: 'Trzęsienie',     icon: '🌀', cost: 60,  desc: 'Mocny wstrząs ofiary.',          effect: () => { shakeUnlocked = true;     enableCosmetic('shake'); } },
+    { id: 'glow',      name: 'Złota Głowa',    icon: '👑', cost: 70,  desc: 'Poświata wokół głowy ofiary.',   effect: () => { glowUnlocked = true;      enableCosmetic('glow'); } },
+    { id: 'bigBtn',    name: 'Wielki Przycisk', icon: '🏋️', cost: 40,  desc: 'Większy i bardziej epicki.',    effect: () => { bigBtnUnlocked = true;    enableCosmetic('bigBtn'); } },
+    { id: 'whipRed',   name: 'Czerwony Bicz',  icon: '🔴', cost: 40,  desc: 'Odblokuj czerwony kolor bicza.', effect: () => { whipColors.whipRed = true;   refreshWhipBtns(); } },
+    { id: 'whipGold',  name: 'Złoty Bicz',     icon: '✨', cost: 150, desc: 'Odblokuj złoty kolor bicza.',    effect: () => { whipColors.whipGold = true;  refreshWhipBtns(); } },
+    { id: 'whipPurple',name: 'Fioletowy Bicz', icon: '🟣', cost: 300, desc: 'Odblokuj fioletowy kolor.',      effect: () => { whipColors.whipPurple = true; refreshWhipBtns(); } },
+  ],
+};
+
+const trackState = {};
+Object.keys(upgradeTracks).forEach(k => trackState[k] = 0);
+
+function currentUpgrade(track) {
+  const lvl = trackState[track];
+  const list = upgradeTracks[track];
+  if (lvl >= list.length) return null;
+  return list[lvl];
+}
+
+function buyUpgrade(track) {
+  const u = currentUpgrade(track);
+  if (!u || coins < u.cost) return;
+  coins -= u.cost;
+  totalSpent += u.cost;
+  u.effect();
+  trackState[track]++;
+  updateUI();
+  renderUpgrades();
+  updateStats();
+}
+
+function renderUpgrades() {
+  const container = document.getElementById('tab-upgrades');
+  container.innerHTML = '';
+
+  const sections = [
+    { label: '⚡ Cooldown Klikania', track: 'cd' },
+    { label: '🪙 Monety za Klik', track: 'coins' },
+    { label: '🤖 Autokliker', track: 'auto' },
+    { label: '💥 Krytyczne Trafienie', track: 'crit' },
+    { label: '🔥 Combo', track: 'combo' },
+    { label: '🎨 Kosmetyki', track: 'cosmetic' },
+  ];
+
+  sections.forEach(sec => {
+    const u = currentUpgrade(sec.track);
+    const list = upgradeTracks[sec.track];
+    const lvl = trackState[sec.track];
+    const isMaxed = lvl >= list.length;
+
+    const card = document.createElement('div');
+    card.className = 'upgrade-card' + (isMaxed ? ' maxed' : (!u || coins < u.cost ? ' locked' : ''));
+
+    if (isMaxed) {
+      const last = list[list.length - 1];
+      card.innerHTML = `
+        <div class="upg-icon">${last.icon}</div>
+        <div class="upg-info">
+          <div class="upg-name">${last.name}</div>
+          <div class="upg-level">MAX — ${sec.label}</div>
+          <div class="upg-desc">${last.desc}</div>
+        </div>
+        <div style="flex-shrink:0"><span class="badge-maxed">MAX</span></div>
+      `;
+    } else {
+      const cantAfford = coins < u.cost;
+      card.innerHTML = `
+        <div class="upg-icon">${u.icon}</div>
+        <div class="upg-info">
+          <div class="upg-name">${u.name}</div>
+          <div class="upg-level">Poziom ${lvl + 1}/${list.length} — ${sec.label}</div>
+          <div class="upg-desc">${u.desc}</div>
+        </div>
+        <div style="flex-shrink:0;text-align:right">
+          <div class="upg-cost ${cantAfford ? 'cant-afford' : ''}">🪙${u.cost}</div>
+        </div>
+      `;
+      card.addEventListener('click', () => buyUpgrade(sec.track));
+    }
+
+    container.appendChild(card);
+  });
+}
+
+function enableCosmetic(name) {
+  const toggleMap = { flash: 'flashToggle', particles: 'particlesToggle', shake: 'shakeToggle', glow: 'glowToggle', bigBtn: 'bigBtnToggle' };
+  const t = document.getElementById(toggleMap[name]);
+  if (!t) return;
+  t.disabled = false;
+  t.checked = true;
+  applyCosmetic(name, true);
+  document.getElementById('cosm-' + name + '-row')?.classList.remove('locked-cosmetic');
+}
+
+function applyCosmetic(name, val) {
+  if (name === 'flash')     { flashEnabled     = val; }
+  if (name === 'particles') { particlesEnabled = val; }
+  if (name === 'shake')     { shakeEnabled     = val; }
+  if (name === 'bigBtn') {
+    bigBtnEnabled = val;
+    const btn = document.getElementById('hitBtn');
+    btn.style.fontSize = val ? '48px' : '';
+    btn.style.padding  = val ? '22px 80px' : '';
+  }
+  if (name === 'glow') {
+    glowEnabled = val;
+    document.querySelector('#victim .head-wrap').style.boxShadow = val ? '0 0 18px 5px #f5c842' : '';
+  }
+}
+
+['flash','particles','shake','glow','bigBtn'].forEach(name => {
+  const toggleMap = { flash: 'flashToggle', particles: 'particlesToggle', shake: 'shakeToggle', glow: 'glowToggle', bigBtn: 'bigBtnToggle' };
+  document.getElementById(toggleMap[name]).addEventListener('change', e => applyCosmetic(name, e.target.checked));
+});
+
+function refreshWhipBtns() {
+  document.querySelectorAll('#whipColorGroup .color-btn').forEach(btn => {
+    const unlockId = btn.dataset.unlock;
+    if (!unlockId || whipColors[unlockId]) {
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+      btn.onclick = () => setWhipColor(btn.dataset.color, btn);
+    } else {
+      btn.style.opacity = '0.25';
+      btn.style.cursor = 'not-allowed';
+      btn.onclick = null;
+    }
+  });
+}
+
+function setWhipColor(color, btn) {
+  document.getElementById('whipHandle').style.stroke = color;
+  document.getElementById('whipTip').style.stroke = color;
+  document.querySelectorAll('#whipColorGroup .color-btn').forEach(b => b.classList.remove('active-color'));
+  btn.classList.add('active-color');
+}
+
+document.querySelector('[data-color="#c8832a"]').onclick = function() { setWhipColor('#c8832a', this); };
+
+function startAuto() {
+  if (autoTimer) return;
+  autoTimer = setInterval(() => {
+    coins += autoPerSec;
+    totalEarned += autoPerSec;
+    updateUI();
+    updateStats();
+    renderUpgrades();
+  }, 1000);
+}
+
+function updateCdDisplay() {
+  const txt = cooldown === 0 ? '∞ none' : (cooldown / 1000).toFixed(1) + 's';
+  document.getElementById('cdDisplay').textContent = txt;
+  document.getElementById('s-cd').textContent = txt;
+}
+
+const whipGroup = document.getElementById('whipGroup');
+const victim    = document.getElementById('victim');
+const hitSound  = document.getElementById('hitSound');
+const soundTog  = document.getElementById('soundToggle');
+const cdBar     = document.getElementById('cdBar');
+
+function hit() {
+  if (onCooldown) return;
+
+  clicks++;
+  let earned = coinsPerClick;
+  let isCrit = critChance > 0 && Math.random() < critChance;
+
+  if (isCrit) {
+    earned *= critMulti;
+    spawnFloater('KRYT! +' + earned, true);
+  } else {
+    spawnFloater('+' + earned);
+  }
+
+  if (comboBonus && clicks % comboEvery === 0) {
+    const bonus = doubleCombo ? 30 : 15;
+    earned += bonus;
+    spawnFloater('COMBO! +' + bonus, false, true);
+  }
+
+  coins += earned;
+  totalEarned += earned;
+
+  whipGroup.classList.remove('swing');
+  void whipGroup.offsetWidth;
+  whipGroup.classList.add('swing');
+
+  victim.classList.remove('hit');
+  void victim.offsetWidth;
+  victim.classList.add('hit');
+
+  if (shakeEnabled) {
+    victim.style.filter = 'saturate(3) hue-rotate(15deg)';
+    setTimeout(() => victim.style.filter = '', 220);
+  }
+
+  if (flashEnabled) {
+    document.body.style.background = 'rgba(230,57,70,0.18)';
+    setTimeout(() => document.body.style.background = '', 100);
+  }
+
+  if (soundTog.checked) {
+    hitSound.currentTime = 0;
+    hitSound.play().catch(() => {});
+  }
+
+  if (particlesEnabled) spawnParticles();
+
+  updateUI();
+  updateStats();
+  renderUpgrades();
+
+  if (cooldown > 0) startCooldown();
+}
+
+function startCooldown() {
+  onCooldown = true;
+  document.getElementById('hitBtn').disabled = true;
+  const start = performance.now();
+
+  function frame(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / cooldown, 1);
+    cdBar.style.transform = `scaleX(${1 - progress})`;
+    if (progress < 1) {
+      cdAnimFrame = requestAnimationFrame(frame);
+    } else {
+      onCooldown = false;
+      document.getElementById('hitBtn').disabled = false;
+      cdBar.style.transform = 'scaleX(1)';
+    }
+  }
+
+  cdAnimFrame = requestAnimationFrame(frame);
+}
+
+function spawnFloater(text, isCrit = false, isCombo = false) {
+  const el = document.createElement('div');
+  el.className = 'floater';
+  el.textContent = text;
+  if (isCrit) { el.style.color = '#e63946'; el.style.fontSize = '40px'; }
+  if (isCombo) { el.style.color = '#2ec4b6'; }
+  const ga = document.getElementById('gameArea');
+  el.style.position = 'absolute';
+  el.style.left = (Math.random() * 140 + 160) + 'px';
+  el.style.top  = (Math.random() * 50 + 90) + 'px';
+  ga.appendChild(el);
+  setTimeout(() => el.remove(), 850);
+}
+
+const canvas = document.getElementById('particleCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+window.addEventListener('resize', () => { canvas.width = innerWidth; canvas.height = innerHeight; });
+
+let particles = [];
+
+function spawnParticles() {
+  const r = document.getElementById('hitBtn').getBoundingClientRect();
+  for (let i = 0; i < 14; i++) {
+    particles.push({
+      x: r.left + r.width / 2, y: r.top,
+      vx: (Math.random() - 0.5) * 6,
+      vy: -(Math.random() * 5 + 2),
+      life: 1,
+      size: Math.random() * 6 + 3,
+      color: Math.random() > 0.5 ? '#f5c842' : '#e63946'
+    });
+  }
+}
+
+function animateParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.18; p.life -= 0.025;
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(animateParticles);
+}
+
+animateParticles();
+
+function updateUI() {
+  document.getElementById('clickCount').textContent = clicks;
+  document.getElementById('coinCount').textContent = coins;
+}
+
+function updateStats() {
+  document.getElementById('s-clicks').textContent = clicks;
+  document.getElementById('s-earned').textContent = totalEarned;
+  document.getElementById('s-spent').textContent = totalSpent;
+  document.getElementById('s-cpc').textContent = coinsPerClick;
+  document.getElementById('s-auto').textContent = autoPerSec;
+  document.getElementById('s-crit').textContent = Math.round(critChance * 100) + '%';
+  document.getElementById('s-combo').textContent = comboBonus ? 'co ' + comboEvery + ' klik' : '—';
+  document.getElementById('s-upg').textContent = Object.values(trackState).reduce((a, b) => a + b, 0);
+}
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+document.getElementById('hitBtn').addEventListener('click', hit);
+
+document.getElementById('shopToggleBtn').addEventListener('click', () => {
+  document.getElementById('shopPanel').classList.toggle('open');
+});
+
+document.getElementById('hitBtn').addEventListener('touchstart', e => {
+  e.preventDefault();
+  if (!onCooldown) hit();
+}, { passive: false });
+refreshWhipBtns();
+renderUpgrades();
+updateUI();
+updateStats();
+updateCdDisplay();
+</script>
+</body>
+</html>
