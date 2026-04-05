@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <title>Sebcio Rencista</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<div id="startScreen" class="overlay">
+  <div class="box">
+    <div class="title">SEBCIO<br><span>RENCISTA</span></div>
+    <div class="divider"></div>
+    <p class="sub">Zbieraj ZUS i Rentę. Uciekaj przed Pracą!</p>
+    <div class="legend">
+      <div class="li zc">💰 ZUS = +10 pkt</div>
+      <div class="li rc">🏖️ Renta = +25 pkt</div>
+      <div class="li pc">💼 Praca = KONIEC</div>
+      <div class="li bc">⚡ Combo x2 przez 5s!</div>
+    </div>
+    <button id="startBtn">ZACZYNAMY!</button>
+  </div>
+</div>
+
+<div id="gameOverScreen" class="overlay" style="display:none">
+  <div class="box">
+    <div class="go-title">GAME<br>OVER</div>
+    <p class="go-sub">— PRACA CIĘ DOPADŁA —</p>
+    <p class="go-score">Wynik: <span id="finalScore">0</span> pkt</p>
+    <p class="go-best">Rekord: <span id="bestScore">0</span> pkt</p>
+    <button id="restartBtn">ZAGRAJ PONOWNIE</button>
+  </div>
+</div>
+
+<div id="hud">
+  <span id="scoreDisplay">WYNIK: 0</span>
+  <span id="comboDisplay" style="display:none">🔥 COMBO x2</span>
+  <span id="timeDisplay">CZAS: 0:00</span>
+</div>
+
+<canvas id="c" style="display:none"></canvas>
+
+<div id="mc">
+  <button class="cb" id="btnL">◀</button>
+  <button class="cb" id="btnR">▶</button>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
