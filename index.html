@@ -6,58 +6,140 @@
   <meta name="theme-color" content="#0a0a0f" />
   <title>Wybierz Grę</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .menu-wrap {
+      padding: 2.5rem 1.5rem 2rem;
+      text-align: center;
+    }
+
+    .menu-title {
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 2rem;
+    }
+
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      width: 200px;
+      border-radius: 12px;
+      overflow: hidden;
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      transition: border-color .18s, transform .18s;
+    }
+
+    .card:hover {
+      border-color: rgba(255,255,255,0.3);
+      transform: translateY(-2px);
+    }
+
+    .card-img-wrap {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: rgba(255,255,255,0.03);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .img-placeholder {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      color: #555;
+    }
+
+    .card-info {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      text-align: left;
+    }
+
+    .card-number {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #555;
+    }
+
+    .card-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: #eee;
+    }
+
+    .card-play {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+    }
+  </style>
 </head>
 <body>
 
   <div class="menu-wrap">
     <h1 class="menu-title">— wybierz grę —</h1>
-
-    <div class="cards">
-
-      <a class="card card-1" href="gra1.pl" target="_blank" rel="noopener noreferrer">
-        <div class="card-img-wrap">
-          <img src="gra1.png" alt="Napierdalaj Wojciecha" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-          <div class="img-placeholder" style="display:none">
-            <svg width="52" height="52" viewBox="0 0 60 60" fill="none"><rect x="8" y="8" width="44" height="44" rx="4" stroke="currentColor" stroke-width="2"/><line x1="8" y1="8" x2="52" y2="52" stroke="currentColor" stroke-width="1.5"/><line x1="52" y1="8" x2="8" y2="52" stroke="currentColor" stroke-width="1.5"/></svg>
-          </div>
-        </div>
-        <div class="card-info">
-          <span class="card-number">gra 01</span>
-          <span class="card-name">Napierdalaj Wojciecha</span>
-          <span class="card-play">▶ Graj</span>
-        </div>
-      </a>
-
-      <a class="card card-2" href="#" target="_blank" rel="noopener noreferrer">
-        <div class="card-img-wrap">
-          <img src="gra2.png" alt="Gra 2" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-          <div class="img-placeholder" style="display:none">
-            <svg width="52" height="52" viewBox="0 0 60 60" fill="none"><rect x="8" y="8" width="44" height="44" rx="4" stroke="currentColor" stroke-width="2"/><line x1="8" y1="8" x2="52" y2="52" stroke="currentColor" stroke-width="1.5"/><line x1="52" y1="8" x2="8" y2="52" stroke="currentColor" stroke-width="1.5"/></svg>
-          </div>
-        </div>
-        <div class="card-info">
-          <span class="card-number">gra 02</span>
-          <span class="card-name">Gra 2</span>
-          <span class="card-play">▶ Graj</span>
-        </div>
-      </a>
-
-      <a class="card card-3" href="#" target="_blank" rel="noopener noreferrer">
-        <div class="card-img-wrap">
-          <img src="gra3.png" alt="Gra 3" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-          <div class="img-placeholder" style="display:none">
-            <svg width="52" height="52" viewBox="0 0 60 60" fill="none"><rect x="8" y="8" width="44" height="44" rx="4" stroke="currentColor" stroke-width="2"/><line x1="8" y1="8" x2="52" y2="52" stroke="currentColor" stroke-width="1.5"/><line x1="52" y1="8" x2="8" y2="52" stroke="currentColor" stroke-width="1.5"/></svg>
-          </div>
-        </div>
-        <div class="card-info">
-          <span class="card-number">gra 03</span>
-          <span class="card-name">Gra 3</span>
-          <span class="card-play">▶ Graj</span>
-        </div>
-      </a>
-
-    </div>
+    <div class="cards" id="cards"></div>
   </div>
+
+  <script>
+    const PLACEHOLDER_SVG = `<svg width="52" height="52" viewBox="0 0 60 60" fill="none"><rect x="8" y="8" width="44" height="44" rx="4" stroke="currentColor" stroke-width="2"/><line x1="8" y1="8" x2="52" y2="52" stroke="currentColor" stroke-width="1.5"/><line x1="52" y1="8" x2="8" y2="52" stroke="currentColor" stroke-width="1.5"/></svg>`;
+
+    const GAMES = [
+      { id: 1, name: "Napierdalaj Wojciecha",  img: "gra1.png", url: "https://xiroxdev.vercel.app/Wojciech/index.html" },
+      { id: 2, name: "Gra Sebcia Rencisty",    img: "gra2.png", url: "https://xiroxdev.vercel.app/SebcioRencista/index.html" },
+      { id: 3, name: "Gra 3",                  img: "gra3.png", url: "#" },
+    ];
+
+    const container = document.getElementById('cards');
+
+    GAMES.forEach(game => {
+      const a = document.createElement('a');
+      a.className = `card card-${game.id}`;
+      a.href = game.url;
+      if (game.url !== '#') {
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+      }
+      a.innerHTML = `
+        <div class="card-img-wrap">
+          <img src="${game.img}" alt="${game.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="img-placeholder">${PLACEHOLDER_SVG}</div>
+        </div>
+        <div class="card-info">
+          <span class="card-number">gra ${String(game.id).padStart(2,'0')}</span>
+          <span class="card-name">${game.name}</span>
+          <span class="card-play">▶ Graj</span>
+        </div>`;
+      container.appendChild(a);
+    });
+  </script>
 
 </body>
 </html>
