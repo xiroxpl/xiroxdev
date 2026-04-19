@@ -10,6 +10,14 @@
 </head>
 <body>
 
+  <nav class="projects-menu" id="projectsMenu">
+    <button class="projects-toggle" id="projectsToggle" aria-expanded="false">inne projekty ▾</button>
+    <ul class="projects-dropdown" role="menu">
+      <li><a href="https://underspread.vercel.app/" target="_blank" rel="noopener noreferrer">underspread</a></li>
+      <li><a href="https://winfix.vercel.app/" target="_blank" rel="noopener noreferrer">winfix</a></li>
+    </ul>
+  </nav>
+
   <div class="menu-wrap">
     <h1 class="menu-title">— wybierz grę —</h1>
     <div class="cards" id="cards"></div>
@@ -45,6 +53,21 @@
           <span class="card-play">▶ Graj</span>
         </div>`;
       container.appendChild(a);
+    });
+
+    const menu = document.getElementById('projectsMenu');
+    const toggle = document.getElementById('projectsToggle');
+
+    toggle.addEventListener('click', () => {
+      const open = menu.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open);
+    });
+
+    document.addEventListener('click', e => {
+      if (!menu.contains(e.target)) {
+        menu.classList.remove('open');
+        toggle.setAttribute('aria-expanded', false);
+      }
     });
   </script>
 
