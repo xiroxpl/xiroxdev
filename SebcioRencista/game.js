@@ -36,14 +36,15 @@ const auth = getAuth(app);
 const db   = getFirestore(app);
 
 // ─── AUTH STATE ───────────────────────────────────────────────
-let currentUser  = null; // { uid, name, isGuest }
+let currentUser  = null;
 let myBestScore  = 0;
 let authMode     = 'login';
+let rankingUnsub = null;
 
-// Listen to real-time ranking from Firestore
 function listenRanking() {
+  if (rankingUnsub) rankingUnsub();
   const q = query(collection(db, 'ranking'), orderBy('score', 'desc'), limit(5));
-  onSnapshot(q, snap => {
+  rankingUnsub = onSnapshot(q, snap => {
     const rows = [];
     snap.forEach(d => rows.push(d.data()));
     renderRankPanel(rows);
@@ -93,7 +94,8 @@ window.showTab = function(mode) {
   authMode = mode;
   document.getElementById('tabLogin').className = 'auth-tab' + (mode === 'login' ? ' active' : '');
   document.getElementById('tabReg').className   = 'auth-tab' + (mode === 'reg'   ? ' active' : '');
-  document.getElementById('regExtra').style.display = mode === 'reg' ? 'block' : 'none';
+  document.getElementById('regExtra').style.display   = mode === 'reg' ? 'block' : 'none';
+  document.getElementById('authUser').style.display   = mode === 'reg' ? 'block' : 'none';
   document.getElementById('authBtn').textContent = mode === 'login' ? 'ZALOGUJ' : 'ZAREJESTRUJ';
   hideAuthMsg();
 };
@@ -107,7 +109,6 @@ function showAuthMsg(msg, ok) {
 function hideAuthMsg() { document.getElementById('authMsg').style.display = 'none'; }
 
 window.doAuth = async function() {
-  const name  = document.getElementById('authUser').value.trim();
   const email = document.getElementById('authEmail').value.trim();
   const pass  = document.getElementById('authPass').value;
 
@@ -116,13 +117,13 @@ window.doAuth = async function() {
   if (authMode === 'login') {
     try {
       await signInWithEmailAndPassword(auth, email, pass);
-      // onAuthStateChanged handles the rest
     } catch (e) {
-      const msg = e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential'
+      const msg = (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential')
         ? 'Błędny e-mail lub hasło!' : 'Błąd logowania: ' + e.message;
       showAuthMsg(msg, false);
     }
   } else {
+    const name = document.getElementById('authUser').value.trim();
     if (!name || name.length < 3) { showAuthMsg('Pseudonim min. 3 znaki!', false); return; }
     if (pass.length < 6)          { showAuthMsg('Hasło min. 6 znaków!', false); return; }
     const pass2 = document.getElementById('authPass2').value;
@@ -130,8 +131,9 @@ window.doAuth = async function() {
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, pass);
       await updateProfile(cred.user, { displayName: name });
+      // force refresh so onAuthStateChanged sees displayName
+      await cred.user.reload();
       showAuthMsg('Konto założone!', true);
-      // onAuthStateChanged handles the rest
     } catch (e) {
       const msg = e.code === 'auth/email-already-in-use'
         ? 'Ten e-mail jest już zajęty!' : 'Błąd rejestracji: ' + e.message;
@@ -147,19 +149,24 @@ window.playAsGuest = function() {
 };
 
 window.logout = async function() {
+  if (rankingUnsub) { rankingUnsub(); rankingUnsub = null; }
   await signOut(auth);
   currentUser = null;
   document.getElementById('startScreen').style.display  = 'none';
   document.getElementById('authScreen').style.display   = 'flex';
+  // show pseudonim field again for next login/reg
+  document.getElementById('authUser').style.display = 'none';
   hideGame();
 };
 
-// Firebase auth state listener
 onAuthStateChanged(auth, async user => {
   if (user) {
+    // Wait for displayName to be set (important right after registration)
+    if (!user.displayName) await user.reload();
+    const freshUser = auth.currentUser;
     currentUser = {
-      uid:     user.uid,
-      name:    user.displayName || user.email.split('@')[0],
+      uid:     freshUser.uid,
+      name:    freshUser.displayName || freshUser.email.split('@')[0],
       isGuest: false
     };
     hideAuthMsg();
@@ -187,8 +194,8 @@ function updateUserCorner() {
   const best = currentUser.isGuest
     ? parseInt(localStorage.getItem('sebcioGuestBest') || '0')
     : myBestScore;
-  document.getElementById('ucName').textContent  = '👤 ' + currentUser.name;
-  document.getElementById('ucBest').textContent  = 'REK: ' + best + ' pkt';
+  document.getElementById('ucName').textContent = '👤 ' + currentUser.name;
+  document.getElementById('ucBest').textContent = 'REK: ' + best + ' pkt';
 }
 
 // ─── CANVAS SETUP ─────────────────────────────────────────────
@@ -250,6 +257,10 @@ function holdBtn(el, dir) {
 holdBtn(document.getElementById('btnL'), 'left');
 holdBtn(document.getElementById('btnR'), 'right');
 
+// face image
+const faceImg = new Image();
+faceImg.src = 'face1.jpg';
+
 const STARS = Array.from({ length: 55 }, () => ({
   x: Math.random() * GAME_W,
   y: Math.random() * GROUND_Y * .9,
@@ -284,28 +295,52 @@ function drawPlayer(dt) {
   if (moving) { walkTimer += dt; if (walkTimer > .11) { walkFrame++; walkTimer = 0; } }
   else walkFrame = 0;
   const cx = player.x, py = GROUND_Y - player.h, sh = player.h;
-  const headR  = sh * .15, headCY = py + headR + 2;
-  const shouldY = headCY + headR + 1, hipY = shouldY + sh * .28;
-  const bob = Math.sin(walkFrame * .8) * 2.5, swing = Math.sin(walkFrame * .8) * 16;
+  const headR   = sh * .15;
+  const headCY  = py + headR + 2;
+  const shouldY = headCY + headR + 1;
+  const hipY    = shouldY + sh * .28;
+  const bob     = Math.sin(walkFrame * .8) * 2.5;
+  const swing   = Math.sin(walkFrame * .8) * 16;
+
   ctx.strokeStyle = '#e8e8ff'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+
+  // legs
   ctx.beginPath(); ctx.moveTo(cx, hipY + bob);
   ctx.lineTo(cx - Math.sin(swing * Math.PI / 180) * sh * .3, hipY + bob + Math.cos(swing * Math.PI / 180) * sh * .3); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(cx, hipY + bob);
   ctx.lineTo(cx + Math.sin(swing * Math.PI / 180) * sh * .3, hipY + bob + Math.cos(swing * Math.PI / 180) * sh * .3); ctx.stroke();
+
+  // body
   ctx.beginPath(); ctx.moveTo(cx, shouldY + bob); ctx.lineTo(cx, hipY + bob); ctx.stroke();
+
+  // arms
   const aswing = Math.sin(walkFrame * .8 + Math.PI) * 20;
   ctx.beginPath(); ctx.moveTo(cx, shouldY + bob + sh * .07);
   ctx.lineTo(cx - Math.sin(aswing * Math.PI / 180) * sh * .22, shouldY + bob + sh * .07 + Math.cos(aswing * Math.PI / 180) * sh * .21); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(cx, shouldY + bob + sh * .07);
   ctx.lineTo(cx + Math.sin(aswing * Math.PI / 180) * sh * .22, shouldY + bob + sh * .07 + Math.cos(aswing * Math.PI / 180) * sh * .21); ctx.stroke();
-  ctx.fillStyle = '#f5c99b';
-  ctx.beginPath(); ctx.arc(cx, headCY + bob, headR, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = '#c8945a'; ctx.lineWidth = 2; ctx.stroke();
-  ctx.fillStyle = '#333';
-  ctx.beginPath(); ctx.arc(cx - headR * .32, headCY + bob - headR * .1, headR * .12, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(cx + headR * .32, headCY + bob - headR * .1, headR * .12, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.arc(cx, headCY + bob + headR * .1, headR * .32, .2, Math.PI - .2); ctx.stroke();
+
+  // head — face image or fallback
+  const s = headR * 2.2;
+  if (faceImg.complete && faceImg.naturalWidth > 0) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, headCY + bob, headR, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(faceImg, cx - s / 2, headCY + bob - s / 2, s, s);
+    ctx.restore();
+    ctx.beginPath(); ctx.arc(cx, headCY + bob, headR, 0, Math.PI * 2);
+    ctx.strokeStyle = '#e8e8ff'; ctx.lineWidth = 2.5; ctx.stroke();
+  } else {
+    ctx.fillStyle = '#f5c99b';
+    ctx.beginPath(); ctx.arc(cx, headCY + bob, headR, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#c8945a'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#333';
+    ctx.beginPath(); ctx.arc(cx - headR * .32, headCY + bob - headR * .1, headR * .12, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + headR * .32, headCY + bob - headR * .1, headR * .12, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx, headCY + bob + headR * .1, headR * .32, .2, Math.PI - .2); ctx.stroke();
+  }
 }
 
 function roundRect(x, y, w, h, r) {
@@ -433,17 +468,16 @@ function startGame() {
 function showNewRecordBanner() {
   const banner = document.getElementById('newRecordBanner');
   banner.textContent = `🏆 ${currentUser && !currentUser.isGuest ? currentUser.name + ': ' : ''}NOWY REKORD!`;
-  banner.style.display = 'block';
-  // re-trigger animation
   banner.style.animation = 'none';
-  banner.offsetHeight; // reflow
+  banner.style.display = 'block';
+  banner.offsetHeight;
   banner.style.animation = '';
   setTimeout(() => { banner.style.display = 'none'; }, 2200);
 }
 
 async function endGame() {
   cancelAnimationFrame(frameId);
-  const prevBest    = currentUser && !currentUser.isGuest
+  const prevBest = currentUser && !currentUser.isGuest
     ? myBestScore
     : parseInt(localStorage.getItem('sebcioGuestBest') || '0');
   const isNewRecord = score > prevBest;
@@ -464,7 +498,7 @@ async function endGame() {
     if (isNewRecord) showNewRecordBanner();
     finalScoreEl.textContent = score;
     bestScoreEl.textContent  = best;
-    document.getElementById('newRecordMsg').style.display  = isNewRecord ? 'block' : 'none';
+    document.getElementById('newRecordMsg').style.display   = isNewRecord ? 'block' : 'none';
     document.getElementById('gameOverScreen').style.display = 'flex';
     document.getElementById('hud').style.display        = 'none';
     document.getElementById('rankPanel').style.display  = 'none';
@@ -490,4 +524,7 @@ document.getElementById('restartBtn').addEventListener('click', () => {
   startGame();
 });
 document.getElementById('authEmail').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('authPass').focus(); });
-document.getElementById('authPass').addEventListener('keydown',  e => { if (e.key === 'Enter') doAuth(); });
+document.getElementById('authPass').addEventListener('keydown',  e => { if (e.key === 'Enter') window.doAuth(); });
+
+// hide pseudonim field on load (only shown during registration)
+document.getElementById('authUser').style.display = 'none';
