@@ -8,7 +8,30 @@
 </head>
 <body>
 
-<div id="startScreen" class="overlay">
+<div id="authScreen" class="overlay">
+  <div class="box">
+    <div class="title">SEBCIO<br><span>RENCISTA</span></div>
+    <div class="divider"></div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="showTab('login')">LOGOWANIE</button>
+      <button class="auth-tab" id="tabReg" onclick="showTab('reg')">REJESTRACJA</button>
+    </div>
+    <div id="authMsg" class="auth-msg" style="display:none"></div>
+    <div class="auth-form">
+      <input type="text" id="authUser" placeholder="Pseudonim gracza" maxlength="20" autocomplete="off"/>
+      <input type="email" id="authEmail" placeholder="Adres e-mail" autocomplete="email"/>
+      <input type="password" id="authPass" placeholder="Hasło (min. 6 znaków)" maxlength="50" autocomplete="new-password"/>
+      <div id="regExtra" style="display:none">
+        <input type="password" id="authPass2" placeholder="Powtórz hasło" maxlength="50" autocomplete="new-password"/>
+      </div>
+    </div>
+    <button id="authBtn" onclick="doAuth()">ZALOGUJ</button>
+    <button class="sec" onclick="playAsGuest()">GRAJ JAKO GOŚĆ</button>
+    <p class="sec-note">⚠️ Użyj unikalnego hasła — nie tego samego co w innych serwisach. Pseudonim będzie widoczny w rankingu.</p>
+  </div>
+</div>
+
+<div id="startScreen" class="overlay" style="display:none">
   <div class="box">
     <div class="title">SEBCIO<br><span>RENCISTA</span></div>
     <div class="divider"></div>
@@ -20,6 +43,7 @@
       <div class="li bc">⚡ Combo x2 przez 5s!</div>
     </div>
     <button id="startBtn">ZACZYNAMY!</button>
+    <button class="sec" onclick="logout()" style="margin-top:6px">WYLOGUJ</button>
   </div>
 </div>
 
@@ -28,12 +52,14 @@
     <div class="go-title">GAME<br>OVER</div>
     <p class="go-sub">— PRACA CIĘ DOPADŁA —</p>
     <p class="go-score">Wynik: <span id="finalScore">0</span> pkt</p>
-    <p class="go-best">Rekord: <span id="bestScore">0</span> pkt</p>
+    <p class="go-best">Twój rekord: <span id="bestScore">0</span> pkt</p>
+    <div id="newRecordMsg" style="display:none;font-size:13px;color:var(--g);font-weight:700;margin-bottom:8px;animation:pulse .5s infinite alternate">🏆 NOWY REKORD!</div>
     <button id="restartBtn">ZAGRAJ PONOWNIE</button>
+    <button class="sec" onclick="showStartFromGameOver()">MENU</button>
   </div>
 </div>
 
-<div id="hud">
+<div id="hud" style="display:none">
   <span id="scoreDisplay">WYNIK: 0</span>
   <span id="comboDisplay" style="display:none">🔥 COMBO x2</span>
   <span id="timeDisplay">CZAS: 0:00</span>
@@ -41,11 +67,23 @@
 
 <canvas id="c" style="display:none"></canvas>
 
-<div id="mc">
+<div id="rankPanel" style="display:none">
+  <div class="rank-title">🏆 TOP 5</div>
+  <div id="rankList"><div class="rank-n" style="font-size:11px;text-align:center">Ładowanie...</div></div>
+</div>
+
+<div id="userCorner" style="display:none">
+  <div class="uname" id="ucName"></div>
+  <div class="upersonal" id="ucBest"></div>
+</div>
+
+<div id="newRecordBanner"></div>
+
+<div id="mc" style="display:none">
   <button class="cb" id="btnL">◀</button>
   <button class="cb" id="btnR">▶</button>
 </div>
 
-<script src="game.js"></script>
+<script type="module" src="game.js"></script>
 </body>
 </html>
