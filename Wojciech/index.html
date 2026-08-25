@@ -401,7 +401,7 @@ function startAuto() {
 }
 
 function updateCdDisplay() {
-  const txt = cooldown === 0 ? '∞ none' : (cooldown / 1000).toFixed(1) + 's';
+  const txt = cooldown === 0 ? '∞ zero' : (cooldown / 1000).toFixed(1) + 's';
   document.getElementById('cdDisplay').textContent = txt;
   document.getElementById('s-cd').textContent = txt;
 }
