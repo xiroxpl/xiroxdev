@@ -110,14 +110,14 @@
           </label>
         </div>
         <div class="cosmetic-row" id="cosm-shake-row">
-          <span class="label">🌀 Trzęsienie Ziemi</span>
+          <span class="label">🌀 Trzęsienie Wojciecha</span>
           <label class="toggle-switch">
             <input type="checkbox" id="shakeToggle" disabled>
             <span class="slider"></span>
           </label>
         </div>
         <div class="cosmetic-row" id="cosm-glow-row">
-          <span class="label">👑 Złota Głowa</span>
+          <span class="label">👑 Aura Wojciecha</span>
           <label class="toggle-switch">
             <input type="checkbox" id="glowToggle" disabled>
             <span class="slider"></span>
@@ -140,7 +140,7 @@
         <div class="stat-row"><span class="label">Monety zarobione</span><span class="value" id="s-earned">0</span></div>
         <div class="stat-row"><span class="label">Monety wydane</span><span class="value" id="s-spent">0</span></div>
         <div class="stat-row"><span class="label">Monety / klik</span><span class="value" id="s-cpc">1</span></div>
-        <div class="stat-row"><span class="label">Autokliker / sek</span><span class="value" id="s-auto">0</span></div>
+        <div class="stat-row"><span class="label">AutoCoins / sek</span><span class="value" id="s-auto">0</span></div>
         <div class="stat-row"><span class="label">Cooldown</span><span class="value" id="s-cd">0.5s</span></div>
         <div class="stat-row"><span class="label">Szansa na krit</span><span class="value" id="s-crit">0%</span></div>
         <div class="stat-row"><span class="label">Combo (co X klik)</span><span class="value" id="s-combo">—</span></div>
@@ -151,18 +151,23 @@
     <div class="tab-content" id="tab-changelog">
       <div class="changelog">
         <div>
+          <div class="cl-ver">v5 — Finalny Update</div>
+          <div class="cl-item">Duze zwiększenie cen ulepszeń.</div>
+          <div class="cl-item">Zmiana niektórych nazw i opisów ulepszeń.</div>
+          <div class="cl-item">Najprawdopodobniej ostatnia aktualizacja.</div>
+        </div>
+        <div>
           <div class="cl-ver">v4.5 — Optymalizacja Mobilna</div>
           <div class="cl-item">Zablokowano zoom przy podwójnym tapnięciu (viewport fix)</div>
           <div class="cl-item">Przycisk NAPIERDALAJ obsługuje touchstart bez opóźnienia</div>
           <div class="cl-item">Layout pionowy na telefonach — panel sklepu jako drawer od dołu</div>
           <div class="cl-item">Przycisk 🛒 otwiera/zamyka sklep na mobile</div>
           <div class="cl-item">Topbar i postaci skalują się na małych ekranach</div>
-          <div class="cl-item">touch-action: none na przycisku — brak ghost-click i scroll</div>
         </div>
         <div>
           <div class="cl-ver">v4.0 — Balans & Kosmetyki</div>
           <div class="cl-item">Cooldown 0.5s na kliknięcie (domyślnie)</div>
-          <div class="cl-item">4 ulepszenia cooldownu (-0.1s każde, ostatnie usuwa CD)</div>
+          <div class="cl-item">4 ulepszenia cooldownu</div>
           <div class="cl-item">Ulepszenia w łańcuchach — auto1→auto2→auto3</div>
           <div class="cl-item">Panel Kosmetyki: włącz/wyłącz flash, cząsteczki, shake, glow</div>
           <div class="cl-item">Wybór koloru bicza po odblokowaniu</div>
@@ -170,8 +175,7 @@
         </div>
         <div>
           <div class="cl-ver">v3.0 — Wielki Sklep</div>
-          <div class="cl-item">Bicz w ręce atakującego, 18 ulepszeń, autokliker III</div>
-          <div class="cl-item">CSS wydzielony do style.css</div>
+          <div class="cl-item">Bicz w ręce atakującego, 18 ulepszeń,</div>
         </div>
         <div>
           <div class="cl-ver">v2.0</div>
@@ -234,40 +238,40 @@ const WHIP_COLORS = {
 
 const upgradeTracks = {
   coins: [
-    { id: 'coins1', name: 'Złote Rękawice',    icon: '🥊', cost: 30,   desc: '+1 moneta/klik.',       effect: () => { coinsPerClick += 1; } },
-    { id: 'coins2', name: 'Srebrne Kłykcie',   icon: '🤜', cost: 120,  desc: '+3 monety/klik.',       effect: () => { coinsPerClick += 3; } },
-    { id: 'coins3', name: 'Diamentowa Pięść',  icon: '💎', cost: 450,  desc: '+10 monet/klik.',       effect: () => { coinsPerClick += 10; } },
-    { id: 'coins4', name: 'Platynowe Kłykcie', icon: '🏆', cost: 1200, desc: '+25 monet/klik.',       effect: () => { coinsPerClick += 25; } },
+    { id: 'coins1', name: 'Dodatkowa Moneta',    icon: '🥊', cost: 80,   desc: '+1 moneta/klik.',       effect: () => { coinsPerClick += 1; } },
+    { id: 'coins2', name: 'Trzy Monety',   icon: '🤜', cost: 240,  desc: '+3 monety/klik.',       effect: () => { coinsPerClick += 3; } },
+    { id: 'coins3', name: 'Diamentowa Pięść',  icon: '💎', cost: 2400,  desc: '+10 monet/klik.',       effect: () => { coinsPerClick += 10; } },
+    { id: 'coins4', name: 'Platynowe Kłykcie', icon: '🏆', cost: 60000, desc: '+25 monet/klik.',       effect: () => { coinsPerClick += 25; } },
   ],
   cd: [
-    { id: 'cd1', name: 'Szybkie Nadgarstki',  icon: '⚡', cost: 80,   desc: 'Cooldown: 0.4s.',  effect: () => { cooldown = 400; updateCdDisplay(); } },
-    { id: 'cd2', name: 'Błyskawiczne Ramię',  icon: '🌩️', cost: 250,  desc: 'Cooldown: 0.3s.',  effect: () => { cooldown = 300; updateCdDisplay(); } },
-    { id: 'cd3', name: 'Piorunujący Cios',    icon: '☄️', cost: 600,  desc: 'Cooldown: 0.2s.',  effect: () => { cooldown = 200; updateCdDisplay(); } },
-    { id: 'cd4', name: 'Brak Limitu',         icon: '∞',  cost: 1500, desc: 'Cooldown: 0s!',    effect: () => { cooldown = 0;   updateCdDisplay(); } },
+    { id: 'cd1', name: 'Zmniejsz Cooldown',  icon: '⚡', cost: 120,   desc: 'Cooldown: 0.4s.',  effect: () => { cooldown = 400; updateCdDisplay(); } },
+    { id: 'cd2', name: 'Mniejszy Cooldown',  icon: '🌩️', cost: 480,  desc: 'Cooldown: 0.3s.',  effect: () => { cooldown = 300; updateCdDisplay(); } },
+    { id: 'cd3', name: 'Delikatny Cooldown',    icon: '☄️', cost: 1440,  desc: 'Cooldown: 0.2s.',  effect: () => { cooldown = 200; updateCdDisplay(); } },
+    { id: 'cd4', name: 'Zero Cooldown',         icon: '∞',  cost: 4100, desc: 'Cooldown: 0s!',    effect: () => { cooldown = 0;   updateCdDisplay(); } },
   ],
   crit: [
-    { id: 'crit1', name: 'Krytyczne Trafienie', icon: '💥', cost: 100,  desc: '15% szansa na 5x monety.',           effect: () => { critChance += 0.15; } },
-    { id: 'crit2', name: 'Mega Kryt',           icon: '🌋', cost: 500,  desc: '+10% krit i x10 zamiast x5.',        effect: () => { critChance += 0.10; critMulti = 10; } },
-    { id: 'crit3', name: 'ULTRA KRYT',          icon: '🌠', cost: 2000, desc: '+15% krit i x20 zamiast x10.',       effect: () => { critChance += 0.15; critMulti = 20; } },
+    { id: 'crit1', name: 'Krytyczne Trafienie', icon: '💥', cost: 150,  desc: '15% szansa na 5x monety.',           effect: () => { critChance += 0.15; } },
+    { id: 'crit2', name: 'Mega Kryt',           icon: '🌋', cost: 1000,  desc: '+10% krit i x10 monety',        effect: () => { critChance += 0.10; critMulti = 10; } },
+    { id: 'crit3', name: 'Popierdolony Kryt',          icon: '🌠', cost: 2500, desc: '+15% krit i x20 monety.',       effect: () => { critChance += 0.15; critMulti = 20; } },
   ],
   combo: [
-    { id: 'combo1', name: 'Combo Streak', icon: '🔥', cost: 150,  desc: 'Co 10 kliknięć +15 monet.',      effect: () => { comboBonus = true; } },
-    { id: 'combo2', name: 'Ultra Combo',  icon: '🌪️', cost: 600,  desc: 'Combo: +30 monet co 5 kliknięć.', effect: () => { doubleCombo = true; comboEvery = 5; } },
+    { id: 'combo1', name: 'Combo Streak', icon: '🔥', cost: 1500,  desc: 'Co 10 kliknięć +15 monet.',      effect: () => { comboBonus = true; } },
+    { id: 'combo2', name: 'Ultra Combo',  icon: '🌪️', cost: 6000,  desc: 'Combo: +30 monet co 5 kliknięć.', effect: () => { doubleCombo = true; comboEvery = 5; } },
   ],
   auto: [
-    { id: 'auto1', name: 'Autokliker I',   icon: '🤖', cost: 200,  desc: '+2 monety/sek.',   effect: () => { autoPerSec += 2;  startAuto(); } },
-    { id: 'auto2', name: 'Autokliker II',  icon: '🦾', cost: 800,  desc: '+8 monet/sek.',   effect: () => { autoPerSec += 8;  startAuto(); } },
-    { id: 'auto3', name: 'Autokliker III', icon: '🏭', cost: 2500, desc: '+25 monet/sek.',  effect: () => { autoPerSec += 25; startAuto(); } },
+    { id: 'auto1', name: 'AutoCoins',   icon: '🤖', cost: 2000,  desc: '+2 monety/sek.',   effect: () => { autoPerSec += 2;  startAuto(); } },
+    { id: 'auto2', name: 'AutoCoins II',  icon: '🦾', cost: 8000,  desc: '+8 monet/sek.',   effect: () => { autoPerSec += 8;  startAuto(); } },
+    { id: 'auto3', name: 'AutoCoins III', icon: '🏭', cost: 25000, desc: '+25 monet/sek.',  effect: () => { autoPerSec += 25; startAuto(); } },
   ],
   cosmetic: [
-    { id: 'flash',     name: 'Flash Ekranu',   icon: '🔆', cost: 80,  desc: 'Ekran błyska przy uderzeniu.',    effect: () => { flashUnlocked = true;     enableCosmetic('flash'); } },
+    { id: 'flash',     name: 'Flash Ekranu',   icon: '🔆', cost: 80,  desc: 'Lepiej to wylącz po zakupie.',    effect: () => { flashUnlocked = true;     enableCosmetic('flash'); } },
     { id: 'particles', name: 'Deszcz Monet',   icon: '🌧️', cost: 50,  desc: 'Cząsteczki przy trafieniu.',     effect: () => { particlesUnlocked = true; enableCosmetic('particles'); } },
-    { id: 'shake',     name: 'Trzęsienie',     icon: '🌀', cost: 60,  desc: 'Mocny wstrząs ofiary.',          effect: () => { shakeUnlocked = true;     enableCosmetic('shake'); } },
-    { id: 'glow',      name: 'Złota Głowa',    icon: '👑', cost: 70,  desc: 'Poświata wokół głowy ofiary.',   effect: () => { glowUnlocked = true;      enableCosmetic('glow'); } },
-    { id: 'bigBtn',    name: 'Wielki Przycisk', icon: '🏋️', cost: 40,  desc: 'Większy i bardziej epicki.',    effect: () => { bigBtnUnlocked = true;    enableCosmetic('bigBtn'); } },
-    { id: 'whipRed',   name: 'Czerwony Bicz',  icon: '🔴', cost: 40,  desc: 'Odblokuj czerwony kolor bicza.', effect: () => { whipColors.whipRed = true;   refreshWhipBtns(); } },
-    { id: 'whipGold',  name: 'Złoty Bicz',     icon: '✨', cost: 150, desc: 'Odblokuj złoty kolor bicza.',    effect: () => { whipColors.whipGold = true;  refreshWhipBtns(); } },
-    { id: 'whipPurple',name: 'Fioletowy Bicz', icon: '🟣', cost: 300, desc: 'Odblokuj fioletowy kolor.',      effect: () => { whipColors.whipPurple = true; refreshWhipBtns(); } },
+    { id: 'shake',     name: 'Trzęsienie Wojciecha',     icon: '🌀', cost: 20,  desc: 'Mocny wstrząs Wojciecha.',          effect: () => { shakeUnlocked = true;     enableCosmetic('shake'); } },
+    { id: 'glow',      name: 'Aura Wojciecha', icon: '👑', cost: 80,  desc: 'Poświata wokół głowy Wojciecha.',   effect: () => { glowUnlocked = true;      enableCosmetic('glow'); } },
+    { id: 'bigBtn',    name: 'Wielki Przycisk', icon: '🏋️', cost: 20,  desc: 'Trzeba coś dodawac?.',    effect: () => { bigBtnUnlocked = true;    enableCosmetic('bigBtn'); } },
+    { id: 'whipRed',   name: 'Czerwony Bicz',  icon: '🔴', cost: 100,  desc: 'Odblokuj czerwony kolor bicza.', effect: () => { whipColors.whipRed = true;   refreshWhipBtns(); } },
+    { id: 'whipGold',  name: 'Złoty Bicz',     icon: '✨', cost: 500, desc: 'Odblokuj złoty kolor bicza.',    effect: () => { whipColors.whipGold = true;  refreshWhipBtns(); } },
+    { id: 'whipPurple',name: 'Fioletowy Bicz', icon: '🟣', cost: 1000, desc: 'Odblokuj fioletowy kolor.',      effect: () => { whipColors.whipPurple = true; refreshWhipBtns(); } },
   ],
 };
 
@@ -300,7 +304,7 @@ function renderUpgrades() {
   const sections = [
     { label: '⚡ Cooldown Klikania', track: 'cd' },
     { label: '🪙 Monety za Klik', track: 'coins' },
-    { label: '🤖 Autokliker', track: 'auto' },
+    { label: '🤖 AutoCoins', track: 'auto' },
     { label: '💥 Krytyczne Trafienie', track: 'crit' },
     { label: '🔥 Combo', track: 'combo' },
     { label: '🎨 Kosmetyki', track: 'cosmetic' },
