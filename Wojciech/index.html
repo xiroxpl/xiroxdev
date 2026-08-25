@@ -154,6 +154,7 @@
           <div class="cl-ver">v5 — Finalny Update</div>
           <div class="cl-item">Duze zwiększenie cen ulepszeń.</div>
           <div class="cl-item">Zmiana niektórych nazw i opisów ulepszeń.</div>
+          <div class="cl-item">Naprawiono animację bicza — po pierwszym kliknięciu przestawała działać, teraz odtwarza się przy każdym kliknięciu.</div>
           <div class="cl-item">Najprawdopodobniej ostatnia aktualizacja.</div>
         </div>
         <div>
@@ -214,27 +215,13 @@ let doubleCombo = false;
 
 let cooldown = 500;
 let onCooldown = false;
-let cdAnimFrame = null;
 
-let flashUnlocked = false;
 let flashEnabled = false;
-let particlesUnlocked = false;
 let particlesEnabled = false;
-let shakeUnlocked = false;
 let shakeEnabled = false;
-let glowUnlocked = false;
-let glowEnabled = false;
-let bigBtnUnlocked = false;
 let bigBtnEnabled = false;
 
 let whipColors = { default: true };
-
-const WHIP_COLORS = {
-  '#c8832a': 'default',
-  '#e63946': 'whipRed',
-  '#f5c842': 'whipGold',
-  '#9b5de5': 'whipPurple',
-};
 
 const upgradeTracks = {
   coins: [
@@ -264,11 +251,11 @@ const upgradeTracks = {
     { id: 'auto3', name: 'AutoCoins III', icon: '🏭', cost: 25000, desc: '+25 monet/sek.',  effect: () => { autoPerSec += 25; startAuto(); } },
   ],
   cosmetic: [
-    { id: 'flash',     name: 'Flash Ekranu',   icon: '🔆', cost: 80,  desc: 'Lepiej to wylącz po zakupie.',    effect: () => { flashUnlocked = true;     enableCosmetic('flash'); } },
-    { id: 'particles', name: 'Deszcz Monet',   icon: '🌧️', cost: 50,  desc: 'Cząsteczki przy trafieniu.',     effect: () => { particlesUnlocked = true; enableCosmetic('particles'); } },
-    { id: 'shake',     name: 'Trzęsienie Wojciecha',     icon: '🌀', cost: 20,  desc: 'Mocny wstrząs Wojciecha.',          effect: () => { shakeUnlocked = true;     enableCosmetic('shake'); } },
-    { id: 'glow',      name: 'Aura Wojciecha', icon: '👑', cost: 80,  desc: 'Poświata wokół głowy Wojciecha.',   effect: () => { glowUnlocked = true;      enableCosmetic('glow'); } },
-    { id: 'bigBtn',    name: 'Wielki Przycisk', icon: '🏋️', cost: 20,  desc: 'Trzeba coś dodawac?.',    effect: () => { bigBtnUnlocked = true;    enableCosmetic('bigBtn'); } },
+    { id: 'flash',     name: 'Flash Ekranu',   icon: '🔆', cost: 80,  desc: 'Lepiej to wylącz po zakupie.',    effect: () => { enableCosmetic('flash'); } },
+    { id: 'particles', name: 'Deszcz Monet',   icon: '🌧️', cost: 50,  desc: 'Cząsteczki przy trafieniu.',     effect: () => { enableCosmetic('particles'); } },
+    { id: 'shake',     name: 'Trzęsienie Wojciecha',     icon: '🌀', cost: 20,  desc: 'Mocny wstrząs Wojciecha.',          effect: () => { enableCosmetic('shake'); } },
+    { id: 'glow',      name: 'Aura Wojciecha', icon: '👑', cost: 80,  desc: 'Poświata wokół głowy Wojciecha.',   effect: () => { enableCosmetic('glow'); } },
+    { id: 'bigBtn',    name: 'Wielki Przycisk', icon: '🏋️', cost: 20,  desc: 'Trzeba coś dodawac?.',    effect: () => { enableCosmetic('bigBtn'); } },
     { id: 'whipRed',   name: 'Czerwony Bicz',  icon: '🔴', cost: 100,  desc: 'Odblokuj czerwony kolor bicza.', effect: () => { whipColors.whipRed = true;   refreshWhipBtns(); } },
     { id: 'whipGold',  name: 'Złoty Bicz',     icon: '✨', cost: 500, desc: 'Odblokuj złoty kolor bicza.',    effect: () => { whipColors.whipGold = true;  refreshWhipBtns(); } },
     { id: 'whipPurple',name: 'Fioletowy Bicz', icon: '🟣', cost: 1000, desc: 'Odblokuj fioletowy kolor.',      effect: () => { whipColors.whipPurple = true; refreshWhipBtns(); } },
@@ -371,7 +358,6 @@ function applyCosmetic(name, val) {
     btn.style.padding  = val ? '22px 80px' : '';
   }
   if (name === 'glow') {
-    glowEnabled = val;
     document.querySelector('#victim .head-wrap').style.boxShadow = val ? '0 0 18px 5px #f5c842' : '';
   }
 }
@@ -402,8 +388,6 @@ function setWhipColor(color, btn) {
   document.querySelectorAll('#whipColorGroup .color-btn').forEach(b => b.classList.remove('active-color'));
   btn.classList.add('active-color');
 }
-
-document.querySelector('[data-color="#c8832a"]').onclick = function() { setWhipColor('#c8832a', this); };
 
 function startAuto() {
   if (autoTimer) return;
@@ -451,12 +435,15 @@ function hit() {
   coins += earned;
   totalEarned += earned;
 
+  // FIX v5: "g" (SVG) nie ma normalnego box modelu — offsetWidth nie wymuszał
+  // reflow, więc animacja restartowała się tylko przy pierwszym kliknięciu.
+  // getBoundingClientRect() działa niezawodnie na elementach SVG.
   whipGroup.classList.remove('swing');
-  void whipGroup.offsetWidth;
+  whipGroup.getBoundingClientRect();
   whipGroup.classList.add('swing');
 
   victim.classList.remove('hit');
-  void victim.offsetWidth;
+  victim.getBoundingClientRect();
   victim.classList.add('hit');
 
   if (shakeEnabled) {
@@ -493,7 +480,7 @@ function startCooldown() {
     const progress = Math.min(elapsed / cooldown, 1);
     cdBar.style.transform = `scaleX(${1 - progress})`;
     if (progress < 1) {
-      cdAnimFrame = requestAnimationFrame(frame);
+      requestAnimationFrame(frame);
     } else {
       onCooldown = false;
       document.getElementById('hitBtn').disabled = false;
@@ -501,7 +488,7 @@ function startCooldown() {
     }
   }
 
-  cdAnimFrame = requestAnimationFrame(frame);
+  requestAnimationFrame(frame);
 }
 
 function spawnFloater(text, isCrit = false, isCombo = false) {
